@@ -70,3 +70,13 @@ python3 random_extract.py
  ```
  all_maeshori_train.txtとall_maeshori_test.txtができる。
  
+* corporaのfileter_extremes関数を使ってみた
+ 結果、11466単語となった ファイル名：dic.py
+ ```bash
+ python3 dic.py
+ head dic.txt 
+ 18846
+ 514	a	3975
+ 2083	aa	249
+ 2872	aaa	49
+ ```
