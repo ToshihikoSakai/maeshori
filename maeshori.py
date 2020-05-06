@@ -5,109 +5,71 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import re
 import collections
-
-#全てのデータをとってくる
-#data = datasets.fetch_20newsgroups(subset='all',categories=['alt.atheism'])
-data = datasets.fetch_20newsgroups(subset='all')
-
-
-#print(data.target.shape) 
-#全ての文書数
-#(18846,)
-
-
-#print(data.target[:10])
-#[10  3 17  3  4 12  4 10 10 19]
-
-#print(data.target_names)
-#['alt.atheism', 'comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware', 'comp.sys.mac.hardware', 'comp.windows.x', 'misc.forsale', 'rec.autos', 'rec.motorcycles', 'rec.sport.baseball', 'rec.sport.hockey', 'sci.crypt', 'sci.electronics', 'sci.med', 'sci.space', 'soc.religion.christian', 'talk.politics.guns', 'talk.politics.mideast', 'talk.politics.misc', 'talk.religion.misc']
-
-#print(data.data[1])
-#From: will@futon.webo.dg.com (Will Taber)
-#Subject: [soc.religion.christian] Re: The arrogance of Christians
-#Lines: 50
-#In a previous message  aa888@freenet.carleton.ca (Mark Baker) writes:
-
-#print(data.target_names[data.target[0]])
-#対象データのカテゴリを出力
-#comp.sys.ibm.pc.hardware
-
-#print(data.target[0])
-#3
-
-#print(data.target_names[data.target[1]])
-#対象データのカテゴリを出力
-#rec.sport.hockey
-#print(data.target[1])
-#10
-
-
-#逆瀬川さん修論の表6.1 20 newsgroups datasetsの各カテゴリの文書数
-#各カテゴリの文書数をとってくる
-#data = datasets.fetch_20newsgroups(subset='all',categories=['alt.atheism'])
-"""
-for cat in data.target_names:
-    data = datasets.fetch_20newsgroups(subset='all',categories=[cat])
-    print(cat,end="")
-    print(data.target.shape)
-"""
-"""
-alt.atheism(799,)
-comp.graphics(973,)
-comp.os.ms-windows.misc(985,)
-comp.sys.ibm.pc.hardware(982,)
-comp.sys.mac.hardware(963,)
-comp.windows.x(988,)
-misc.forsale(975,)
-rec.autos(990,)
-rec.motorcycles(996,)
-rec.sport.baseball(994,)
-rec.sport.hockey(999,)
-sci.crypt(991,)
-sci.electronics(984,)
-sci.med(990,)
-sci.space(987,)
-soc.religion.christian(997,)
-talk.politics.guns(910,)
-talk.politics.mideast(940,)
-talk.politics.misc(775,)
-talk.religion.misc(628,)
-"""
+from collections import defaultdict
 
 #stopwords
 stop_words = set(stopwords.words("english"))
+#print(stop_words)
 
-#文を渡すとstopwordsでフィルタしたあとの文を返す関数
-#入力：文
-#sentence = 'This is a sample sentence, showing off the stop words filtration.'
-#出力:stopwordsでフィルタされた　かつアルファベット以外　かつ　小文字になったあとの単語のリスト
-#  ['adam','clinton',....'good']
-def stopsen(sentence):
+path='/Users/sakai/scikit_learn_data/20news-bydate/matlab/news20_all'
+
+words = set() #単語集合
+categories = set() #カテゴリ集合
+wordcount = {}         # wordcount[cat][word] カテゴリでの単語の出現回数
+catcount = {}          # catcount[cat] カテゴリの出現回数
+wordcount_all = {}  #wordcount[word]　全文書での単語の出現回数
+
+lineword = [] #行ごとの単語 ['from','to',....]
+wordlist = [] #文書ごとの単語リスト[['from','to',..]]
+
+
+
+#全てのデータをとってくる
+with open(path) as f:
+    for line in f:
+        #print(line)
+        line = line.rstrip()
+        temp = line.split()
+        cat = temp[0]
+        categories.add(cat)
+        for wfreq in temp[1:]:
+            w = wfreq.split(':')
+            w = w[0].strip()
+            if(w not in stop_words):            
+                words.add(w)
+                
+
+for w in words:
+    wordcount_all[w] = 0
+                
+
+for cat in categories:
+    wordcount[cat] = defaultdict(int)
+    catcount[cat] = 0
+        
+with open(path) as f:
+    for line in f:
+        line = line.rstrip()
+        temp = line.split()
+        cat = temp[0]
+        catcount[cat]+=1
+        for wfreq in temp[1:]:
+            word,count = wfreq.split(':')
+            word = word.strip()
+
+            count = int(count)
+            #print('word=',word)
+            #print('count=',count)
+            #print('type(count)=',type(count))
+            if(word not in stop_words):
+                lineword.append(word)
+                wordcount[cat][word] += count
+                wordcount_all[word] += count
+                #print('wordcount',cat,word,wordcount[cat][word])
+        wordlist.append(lineword)
+        lineword = []
+                
     
-    word_tokens = word_tokenize(sentence)
-    filtered_sentence = [w for w in word_tokens if not w in stop_words]
-
-    for w in word_tokens:
-        if w not in stop_words:
-            
-            #アルファベット以外の文字を削除
-            w = re.sub(r'[^a-zA-Z]+',"",w)
-
-            #''以外
-            if(w != ''):
-                #アルファベットの小文字化 w.lower()
-                filtered_sentence.append(w.lower())
-
-    return filtered_sentence
-    
-#stopwordsで除外したあとのsentense    
-#print(stopsen(sentence))
-#print(stopsen(data.data[1]))
-
-#文書の全てを出力
-#for w in data.target:
-#    print(data.data[w])
-
 #nouns = [['ブドウ','バナナ'],
 #        ['レモン','レモン','バナナ','ブドウ'],
 #        ['ブドウ']]
@@ -135,70 +97,53 @@ def tfdf(nouns):
     for term,doc_set in dfs.items():
         dfs[term] = len(doc_set)
 
+
+    #print('tfs:',tfs)
+    #print('dfs:',dfs)
     return dfs
 
-#単語リスト
-words_list = []
-#DF計算用のリスト
-tfdflist=[]
-
-for sen in data.data:
-    #senの中身
-    #From: will@futon.webo.dg.com (Will Taber)
-    #Subject: [soc.religion.christian] Re: The arrogance of Christians
-    #Lines: 50
-    #In a previous message  aa888@freenet.carleton.ca (Mark Baker) writes:
-    sent = stopsen(sen)
-
-    #出力:stopwordsでフィルタされた　かつアルファベット以外を除き　かつ　小文字になったあとの単語のリスト
-    #['from','keith'....]
-    
-    #末尾に要素を追加: append()
-    tfdflist.append(sent)
-    #末尾に別のリストやタプルを結合（連結）: extend()
-    words_list.extend(sent)
-
-#print(tfdflist)
-#[['from','keith'....],['from','kmr',...],['from','my',...],....,['from','as',...]]
-
-dfs = tfdf(tfdflist)
-#{'from': 799, 'acooper': 22, 'macccmacalstredu': 22, 'turin': 13, 'turambar': 13, 'me': 18,....}
+dfs = tfdf(wordlist)
 #print(dfs)
+#{'from': 799, 'acooper': 22, 'macccmacalstredu': 22, 'turin': 13, 'turambar': 13, 'me': 18,....}
 
-
-print('文書群の総数',len(tfdflist))
-#799：文書群の総数
-print('単語の総数',len(dfs))
-#14810：単語の総数
-
+#print('len(wordlist)=',len(wordlist))
+#18774
 
 #30%以上のDF値をもつ単語は除外
-keys = [k for k,v in dfs.items() if v < len(tfdflist)*30/100]
-#print(keys)
-#print('len(keys)=',len(keys))
+keys = [k for k,v in dfs.items() if v < int(len(wordlist)*30/100)]
 
-#keysは単語リスト（30%未満の文書頻度）
-#['a','b',...''d]
+#全文書での20回以上の出現頻度の単語
+tf20over = []
 
+#全文書での20回以上の出現頻度の単語
+for w in words:
+    if wordcount_all[w] > 20:
+        tf20over.append(w) 
 
-#単語のリストを渡し、単語の出現頻度をカウント
-c = collections.Counter(words_list)
-#word_listは['a','b',...''d]の総文書の総単語
-#key：単語、value:出現頻度
-#print(c)
-#print('len(c)=',len(c))    
-
-#出現頻度20回より多い（20回以下は除外）単語のみ出力
-#https://note.nkmk.me/python-collections-counter/
-#print([i[0] for i in c.items() if i[1] >= 20])
-tf20over = [i[0] for i in c.items() if i[1] > 20]
-#print('len(tf20over)=',len(tf20over))    
-    
-    
+#文書全体30%未満のDF値をもつ単語　かつ　全文書での20回以上の出現頻度の単語
 new_words = set(keys) & set(tf20over)
-    
-print('len(new_words)=',len(new_words))
+
+
+#出力イメージ    
+#archives:178:92
+#wuarchive:89:55
+#archive:497:200
+#archived:47:30
 for w in new_words:
     print(w,end='')
-    print('出現頻度',c[w],end='')
-    print('文書頻度(回数)',dfs[w])
+    print(':',end='')
+    print(wordcount_all[w],end='')
+    print(':',end='')
+    print(dfs[w])
+
+'''
+for cat in categories:
+    if(cat == 'alt.atheism'):
+        print(cat)
+        for w in new_words:
+            if(wordcount[cat][w] != 0):
+                print(w,end='')
+                print(':',end='')
+                print(wordcount[cat][w])
+    
+'''
