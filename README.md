@@ -6,6 +6,9 @@
 * アルファベットを小文字に統一
 * 文書群での総出現回数が20回以下の単語及び全体の30%以上の文書に出現する単語の除外
 
+単語集合の作成
+* カテゴリ単語順序対集合の作成
+
 # 利用しているデータ
 20newsgroup datasetsの20news-bydate-matlab.tgzをとってくる
 
@@ -69,6 +72,12 @@ cat alt.atheism.maeshori.txt comp.graphics.maeshori.txt... >  all_maeshori.txt
 python3 random_extract.py
  ```
  all_maeshori_train.txtとall_maeshori_test.txtができる。
+ 
+# カテゴリ単語順序対集合の作成
+```bash
+python3 C_create.py > category_word_set.txt
+ ```
+例） alt.atheism subject alt.atheism visit alt.atheism jehovah alt.atheism witnesses alt.atheism lippard alt.atheism james alt.atheism
  
 * corporaのfileter_extremes関数を使ってみた
  結果、11466単語となった ファイル名：dic.py
