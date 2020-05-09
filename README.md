@@ -79,7 +79,7 @@ python3 C_create.py > category_word_set.txt
  ```
 例） alt.atheism subject alt.atheism visit alt.atheism jehovah alt.atheism witnesses alt.atheism lippard alt.atheism james alt.atheism
  
-* corporaのfileter_extremes関数を使ってみた
+#(別実験) corporaのfileter_extremes関数を使ってみた
  結果、11466単語となった ファイル名：dic.py
  ```bash
  python3 dic.py
